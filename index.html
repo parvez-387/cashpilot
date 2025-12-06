@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Pilot - Personal Finance Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Local Development - PostgreSQL -->
+    <script src="db.js"></script>
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Main App Container -->
+    <div id="app" class="min-h-screen">
+        
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex items-center justify-center hidden">
+            <div class="text-center">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+                <p class="mt-4 text-gray-600">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen active">
+            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 px-4">
+                <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+                    <div class="text-center mb-8">
+                        <div class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-plane text-white text-2xl"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-800">Cash Pilot</h1>
+                        <p class="text-gray-500 mt-2">Manage your finances with ease</p>
+                    </div>
+                    
+                    <form id="login-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="login-email" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter your email">
+                            <span class="text-red-500 text-xs hidden" id="login-email-error"></span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" id="login-password" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter your password">
+                            <span class="text-red-500 text-xs hidden" id="login-password-error"></span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded text-blue-600">
+                                <span class="ml-2 text-sm text-gray-600">Remember me</span>
+                            </label>
+                            <a href="#" onclick="showForgotPassword()" class="text-sm text-blue-600 hover:underline">Forgot Password?</a>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium">
+                            <span id="login-btn-text">Sign In</span>
+                            <span id="login-btn-loading" class="hidden">
+                                <i class="fas fa-spinner fa-spin"></i> Signing in...
+                            </span>
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6">
+                        <div class="relative">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div class="relative flex justify-center text-sm">
+                                <span class="px-2 bg-white text-gray-500">Or continue with</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 grid grid-cols-2 gap-3">
+                            <button class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                                <i class="fab fa-google text-red-500 mr-2"></i>
+                                <span class="text-sm">Google</span>
+                            </button>
+                            <button class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                                <i class="fab fa-apple text-gray-800 mr-2"></i>
+                                <span class="text-sm">Apple</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-8 text-center text-sm text-gray-600">
+                        Don't have an account? 
+                        <a href="#" onclick="showScreen('signup-screen')" class="text-blue-600 font-medium hover:underline">Sign up</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signup Screen -->
+        <div id="signup-screen" class="screen">
+            <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 px-4 py-8">
+                <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+                    <div class="text-center mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">Create Account</h2>
+                        <p class="text-gray-500 mt-2">Join Cash Pilot today</p>
+                    </div>
+                    
+                    <form id="signup-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <input type="text" id="signup-name" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter your name">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="signup-email" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter your email">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" id="signup-password" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Create a password">
+                            <p class="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                            <input type="password" id="signup-confirm-password" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Confirm your password">
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-medium">
+                            Create Account
+                        </button>
+                    </form>
+                    
+                    <p class="mt-6 text-center text-sm text-gray-600">
+                        Already have an account? 
+                        <a href="#" onclick="showScreen('login-screen')" class="text-purple-600 font-medium hover:underline">Sign in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App Layout (Dashboard and other screens) -->
+        <div id="main-app" class="screen">
+            
+            <!-- Top Navigation Bar -->
+            <nav class="bg-white shadow-md fixed top-0 left-0 right-0 z-40">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center">
+                            <div class="bg-blue-600 w-10 h-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-plane text-white"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-800">Cash Pilot</span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <button onclick="toggleNotifications()" class="relative text-gray-600 hover:text-gray-800">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                            </button>
+                            <div id="notifications-panel" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+                                <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                                    <h3 class="font-semibold text-gray-800">Notifications</h3>
+                                    <button onclick="clearAllNotifications()" class="text-xs text-blue-600 hover:underline">Clear All</button>
+                                </div>
+                                <div id="notifications-list" class="divide-y divide-gray-100">
+                                    <div class="p-4 text-center text-gray-500 text-sm">
+                                        No new notifications
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <button onclick="toggleUserMenu()" class="flex items-center space-x-2">
+                                    <img src="https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff" 
+                                        class="w-8 h-8 rounded-full" alt="User">
+                                    <i class="fas fa-chevron-down text-gray-600"></i>
+                                </button>
+                                <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                                    <a href="#" onclick="showScreen('profile-screen')" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user mr-2"></i> Profile
+                                    </a>
+                                    <a href="#" onclick="showScreen('settings-screen')" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-cog mr-2"></i> Settings
+                                    </a>
+                                    <hr class="my-2">
+                                    <a href="#" onclick="logout()" class="block px-4 py-2 text-red-600 hover:bg-gray-100">
+                                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Bottom Navigation (Mobile) -->
+            <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+                <div class="flex justify-around">
+                    <button onclick="showAppScreen('dashboard-screen')" class="nav-btn active flex-1 py-3 text-center">
+                        <i class="fas fa-home text-xl"></i>
+                        <p class="text-xs mt-1">Home</p>
+                    </button>
+                    <button onclick="showAppScreen('transactions-screen')" class="nav-btn flex-1 py-3 text-center">
+                        <i class="fas fa-exchange-alt text-xl"></i>
+                        <p class="text-xs mt-1">Transactions</p>
+                    </button>
+                    <button onclick="showAppScreen('reports-screen')" class="nav-btn flex-1 py-3 text-center">
+                        <i class="fas fa-chart-bar text-xl"></i>
+                        <p class="text-xs mt-1">Reports</p>
+                    </button>
+                    <button onclick="showAppScreen('loans-screen')" class="nav-btn flex-1 py-3 text-center">
+                        <i class="fas fa-hand-holding-usd text-xl"></i>
+                        <p class="text-xs mt-1">Loans</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar Navigation (Desktop) -->
+            <aside class="hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-white shadow-lg overflow-y-auto">
+                <nav class="p-4 space-y-2">
+                    <a href="#" onclick="showAppScreen('dashboard-screen')" class="sidebar-link active flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showAppScreen('transactions-screen')" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Transactions</span>
+                    </a>
+                    <a href="#" onclick="showAppScreen('income-screen')" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Income</span>
+                    </a>
+                    <a href="#" onclick="showAppScreen('expense-screen')" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Expense</span>
+                    </a>
+                    <a href="#" onclick="showAppScreen('loans-screen')" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <span>Loans</span>
+                    </a>
+                    <a href="#" onclick="showAppScreen('reports-screen')" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                    <a href="#" onclick="showAppScreen('settings-screen')" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" onclick="showAppScreen('admin-screen')" id="admin-nav-link" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hidden">
+                        <i class="fas fa-crown"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="pt-16 pb-20 md:pb-4 md:ml-64">
+                
+                <!-- Dashboard Screen -->
+                <div id="dashboard-screen" class="app-screen active">
+                    <div class="max-w-7xl mx-auto px-4 py-6">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
+                        
+                        <!-- Balance Summary Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-green-100">Total Income</p>
+                                    <i class="fas fa-arrow-up text-2xl"></i>
+                                </div>
+                                <h3 class="text-3xl font-bold" id="total-income">$0.00</h3>
+                                <p class="text-sm text-green-100 mt-2">This month</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-red-100">Total Expense</p>
+                                    <i class="fas fa-arrow-down text-2xl"></i>
+                                </div>
+                                <h3 class="text-3xl font-bold" id="total-expense">$0.00</h3>
+                                <p class="text-sm text-red-100 mt-2">This month</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-blue-100">Net Balance</p>
+                                    <i class="fas fa-wallet text-2xl"></i>
+                                </div>
+                                <h3 class="text-3xl font-bold" id="net-balance">$0.00</h3>
+                                <p class="text-sm text-blue-100 mt-2">Available</p>
+                            </div>
+                        </div>
+
+                        <!-- Loan Overview -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Loans Given</h3>
+                                    <i class="fas fa-hand-holding-usd text-orange-500 text-xl"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-orange-600" id="loans-given">$0.00</p>
+                                <p class="text-sm text-gray-500 mt-2">Outstanding amount</p>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Loans Taken</h3>
+                                    <i class="fas fa-hand-holding-usd text-purple-500 text-xl"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-purple-600" id="loans-taken">$0.00</p>
+                                <p class="text-sm text-gray-500 mt-2">To be repaid</p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <button onclick="openModal('add-income-modal')" class="flex flex-col items-center justify-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition">
+                                    <div class="bg-green-500 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                                        <i class="fas fa-plus text-white"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">Add Income</span>
+                                </button>
+                                
+                                <button onclick="openModal('add-expense-modal')" class="flex flex-col items-center justify-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition">
+                                    <div class="bg-red-500 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                                        <i class="fas fa-minus text-white"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">Add Expense</span>
+                                </button>
+                                
+                                <button onclick="openModal('add-loan-given-modal')" class="flex flex-col items-center justify-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition">
+                                    <div class="bg-orange-500 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                                        <i class="fas fa-hand-holding-usd text-white"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">Lend Given</span>
+                                </button>
+                                
+                                <button onclick="openModal('add-loan-taken-modal')" class="flex flex-col items-center justify-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition">
+                                    <div class="bg-purple-500 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                                        <i class="fas fa-hand-holding text-white"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-700">Lend Taken</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Transactions -->
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">Recent Transactions</h3>
+                                <a href="#" onclick="showAppScreen('transactions-screen')" class="text-blue-600 text-sm hover:underline">View All</a>
+                            </div>
+                            <div id="recent-transactions" class="space-y-3">
+                                <!-- Transactions will be populated here -->
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-receipt text-4xl mb-2"></i>
+                                    <p>No transactions yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Screen -->
+                <div id="transactions-screen" class="app-screen">
+                    <div class="max-w-7xl mx-auto px-4 py-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h1 class="text-2xl font-bold text-gray-800">All Transactions</h1>
+                            <button onclick="toggleFilters()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-filter mr-2"></i> Filters
+                            </button>
+                        </div>
+
+                        <!-- Filters Panel -->
+                        <div id="filters-panel" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">Filter & Sort Transactions</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                                    <select id="filter-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option value="">All Types</option>
+                                        <option value="income">Income</option>
+                                        <option value="expense">Expense</option>
+                                        <option value="loan_given">Loan Given</option>
+                                        <option value="loan_taken">Loan Taken</option>
+                                        <option value="repayment">Repayment</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
+                                    <input type="date" id="filter-date-from" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
+                                    <input type="date" id="filter-date-to" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                    <select id="filter-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Account</label>
+                                    <select id="filter-account" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option value="">All Accounts</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="bank">Bank Account</option>
+                                        <option value="card">Credit Card</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                                    <select id="sort-by" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option value="date_desc">Date (Newest First)</option>
+                                        <option value="date_asc">Date (Oldest First)</option>
+                                        <option value="amount_desc">Amount (High to Low)</option>
+                                        <option value="amount_asc">Amount (Low to High)</option>
+                                        <option value="category">Category (A-Z)</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Min Amount</label>
+                                    <input type="number" step="0.01" id="filter-min-amount" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Max Amount</label>
+                                    <input type="number" step="0.01" id="filter-max-amount" placeholder="No limit" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                
+                                <div class="flex items-end gap-2">
+                                    <button onclick="applyFilters()" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        <i class="fas fa-check mr-2"></i>Apply
+                                    </button>
+                                    <button onclick="clearFilters()" class="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                                        <i class="fas fa-times mr-2"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transactions List -->
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                            <div id="transactions-list" class="divide-y divide-gray-200">
+                                <!-- Transactions will be populated here -->
+                            </div>
+                            <div class="p-4 text-center">
+                                <button id="load-more-btn" onclick="loadMoreTransactions()" class="text-blue-600 hover:underline">
+                                    <span id="load-more-text">Load More</span>
+                                    <span id="load-more-loading" class="hidden"><i class="fas fa-spinner fa-spin"></i> Loading...</span>
+                                </button>
+                                <p id="no-more-transactions" class="text-gray-500 text-sm hidden">No more transactions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Income Screen -->
+                <div id="income-screen" class="app-screen">
+                    <div class="max-w-4xl mx-auto px-4 py-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h1 class="text-2xl font-bold text-gray-800">Income</h1>
+                            <button onclick="openModal('add-income-modal')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                <i class="fas fa-plus mr-2"></i> Add Income
+                            </button>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">Income Summary</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600">This Month</p>
+                                    <p class="text-2xl font-bold text-green-600" id="income-this-month">$0.00</p>
+                                </div>
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600">Last Month</p>
+                                    <p class="text-2xl font-bold text-blue-600" id="income-last-month">$0.00</p>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600">This Year</p>
+                                    <p class="text-2xl font-bold text-purple-600" id="income-this-year">$0.00</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                            <div id="income-list" class="divide-y divide-gray-200">
+                                <!-- Income transactions will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense Screen -->
+                <div id="expense-screen" class="app-screen">
+                    <div class="max-w-4xl mx-auto px-4 py-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h1 class="text-2xl font-bold text-gray-800">Expenses</h1>
+                            <button onclick="openModal('add-expense-modal')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                                <i class="fas fa-plus mr-2"></i> Add Expense
+                            </button>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">Expense Summary</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-red-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600">This Month</p>
+                                    <p class="text-2xl font-bold text-red-600" id="expense-this-month">$0.00</p>
+                                </div>
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600">Last Month</p>
+                                    <p class="text-2xl font-bold text-blue-600" id="expense-last-month">$0.00</p>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600">This Year</p>
+                                    <p class="text-2xl font-bold text-purple-600" id="expense-this-year">$0.00</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                            <div id="expense-list" class="divide-y divide-gray-200">
+                                <!-- Expense transactions will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loans Screen -->
+                <div id="loans-screen" class="app-screen">
+                    <div class="max-w-6xl mx-auto px-4 py-6">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-6">Loan Management</h1>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Loans Given Section -->
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-xl font-semibold text-gray-800">Loans Given</h2>
+                                    <button onclick="openModal('add-loan-given-modal')" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div id="loans-given-list" class="space-y-4">
+                                    <!-- Loans given will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Loans Taken Section -->
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-xl font-semibold text-gray-800">Loans Taken</h2>
+                                    <button onclick="openModal('add-loan-taken-modal')" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div id="loans-taken-list" class="space-y-4">
+                                    <!-- Loans taken will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Screen -->
+                <div id="reports-screen" class="app-screen">
+                    <div class="max-w-7xl mx-auto px-4 py-6">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-6">Reports & Analytics</h1>
+                        
+                        <!-- Report Filters -->
+                        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">Report Criteria</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+                                    <select id="report-type-filter" onchange="toggleReportOptions()" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option value="summary">Summary Report</option>
+                                        <option value="income_details">All Income - Details</option>
+                                        <option value="income_total">All Income - Total Only</option>
+                                        <option value="expense_details">All Expense - Details</option>
+                                        <option value="expense_total">All Expense - Total Only</option>
+                                        <option value="loan_given_details">Loans Given - Details</option>
+                                        <option value="loan_given_total">Loans Given - Total Only</option>
+                                        <option value="loan_taken_details">Loans Taken - Details</option>
+                                        <option value="loan_taken_total">Loans Taken - Total Only</option>
+                                        <option value="repayment_received_details">Repayment Received - Details</option>
+                                        <option value="repayment_received_total">Repayment Received - Total Only</option>
+                                        <option value="repayment_paid_details">Repayment Paid - Details</option>
+                                        <option value="repayment_paid_total">Repayment Paid - Total Only</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
+                                    <input type="date" id="report-date-from" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
+                                    <input type="date" id="report-date-to" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div class="flex items-end">
+                                    <button onclick="generateCustomReport()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        <i class="fas fa-file-alt mr-2"></i>Generate Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Output -->
+                        <div id="report-output" class="bg-white rounded-xl shadow-md p-6 mb-6 hidden">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold" id="report-title">Report</h3>
+                                <button onclick="printReport()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                    <i class="fas fa-print mr-2"></i>Print Report
+                                </button>
+                            </div>
+                            <div id="report-content"></div>
+                        </div>
+                        
+                        <!-- Summary Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <p class="text-sm text-gray-600 mb-2">Monthly Income</p>
+                                <p class="text-2xl font-bold text-green-600" id="report-monthly-income">$0.00</p>
+                            </div>
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <p class="text-sm text-gray-600 mb-2">Monthly Expense</p>
+                                <p class="text-2xl font-bold text-red-600" id="report-monthly-expense">$0.00</p>
+                            </div>
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <p class="text-sm text-gray-600 mb-2">Net Balance</p>
+                                <p class="text-2xl font-bold text-blue-600" id="report-net-balance">$0.00</p>
+                            </div>
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <p class="text-sm text-gray-600 mb-2">Savings Rate</p>
+                                <p class="text-2xl font-bold text-purple-600" id="report-savings-rate">0%</p>
+                            </div>
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h3 class="text-lg font-semibold mb-4">Income vs Expense</h3>
+                                <canvas id="income-expense-chart"></canvas>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h3 class="text-lg font-semibold mb-4">Expense by Category</h3>
+                                <canvas id="category-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Top Categories -->
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4">Top Spending Categories This Month</h3>
+                            <div id="top-categories" class="space-y-3">
+                                <!-- Categories will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Screen -->
+                <div id="settings-screen" class="app-screen">
+                    <div class="max-w-4xl mx-auto px-4 py-6">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-6">Settings</h1>
+                        
+                        <div class="space-y-6">
+                            <!-- General Settings -->
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h3 class="text-lg font-semibold mb-4">General Settings</h3>
+                                <form id="settings-form" onsubmit="handleSettingsUpdate(event)" class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                                            <select id="currency-setting" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="USD">USD - US Dollar ($)</option>
+                                                <option value="EUR">EUR - Euro (€)</option>
+                                                <option value="GBP">GBP - British Pound (£)</option>
+                                                <option value="INR">INR - Indian Rupee (₹)</option>
+                                                <option value="BDT">BDT - Bangladeshi Taka (৳)</option>
+                                                <option value="JPY">JPY - Japanese Yen (¥)</option>
+                                                <option value="CNY">CNY - Chinese Yuan (¥)</option>
+                                                <option value="AUD">AUD - Australian Dollar (A$)</option>
+                                                <option value="CAD">CAD - Canadian Dollar (C$)</option>
+                                                <option value="CHF">CHF - Swiss Franc (CHF)</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Default Account</label>
+                                            <select id="default-account-setting" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="cash">Cash</option>
+                                                <option value="bank">Bank Account</option>
+                                                <option value="card">Credit Card</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
+                                            <select id="date-format-setting" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                                            <select id="language-setting" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="en">English</option>
+                                                <option value="es">Spanish</option>
+                                                <option value="fr">French</option>
+                                                <option value="de">German</option>
+                                                <option value="bn">Bengali</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+                                            <select id="theme-setting" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="light">Light</option>
+                                                <option value="dark">Dark</option>
+                                                <option value="auto">Auto (System)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                                        <i class="fas fa-save mr-2"></i> Save Settings
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Accounts Management -->
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold">Manage Accounts</h3>
+                                    <button onclick="openAddAccountModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        <i class="fas fa-plus mr-2"></i> Add Account
+                                    </button>
+                                </div>
+                                <div id="accounts-list" class="space-y-2">
+                                    <!-- Accounts will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Master Preferences Management -->
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold">Master Preferences</h3>
+                                    <button onclick="openModal('add-preference-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        <i class="fas fa-plus mr-2"></i> Add Preference
+                                    </button>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Category</label>
+                                    <select id="preference-category-filter" onchange="filterPreferences()" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option value="all">All Categories</option>
+                                        <option value="Currency">Currency</option>
+                                        <option value="Account">Account</option>
+                                        <option value="Income">Income Category</option>
+                                        <option value="Expense">Expense Category</option>
+                                        <option value="Theme">Theme</option>
+                                        <option value="Language">Language</option>
+                                        <option value="Date Format">Date Format</option>
+                                        <option value="Default Action">Default Action</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="preferences-list" class="space-y-2 max-h-96 overflow-y-auto">
+                                    <!-- Preferences will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Categories Management -->
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold">Manage Categories</h3>
+                                    <button onclick="openModal('add-category-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        <i class="fas fa-plus mr-2"></i> Add Category
+                                    </button>
+                                </div>
+                                <div id="categories-list" class="space-y-2">
+                                    <!-- Categories will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Notifications -->
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h3 class="text-lg font-semibold mb-4">Notification Preferences</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center justify-between">
+                                        <span class="text-gray-700">Transaction Alerts</span>
+                                        <input type="checkbox" id="notif-transactions" class="toggle-switch" checked>
+                                    </label>
+                                    <label class="flex items-center justify-between">
+                                        <span class="text-gray-700">Loan Due Reminders</span>
+                                        <input type="checkbox" id="notif-loans" class="toggle-switch" checked>
+                                    </label>
+                                    <label class="flex items-center justify-between">
+                                        <span class="text-gray-700">Budget Alerts</span>
+                                        <input type="checkbox" id="notif-budgets" class="toggle-switch">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Backup & Restore -->
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h3 class="text-lg font-semibold mb-4">Backup & Restore</h3>
+                                <div class="space-y-3">
+                                    <button onclick="exportData()" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                        <i class="fas fa-download mr-2"></i> Export Data (CSV)
+                                    </button>
+                                    <button onclick="backupToLocal()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        <i class="fas fa-save mr-2"></i> Local Backup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Screen -->
+                <div id="profile-screen" class="app-screen">
+                    <div class="max-w-4xl mx-auto px-4 py-6">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-6">Profile</h1>
+                        
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <div class="flex items-center space-x-6 mb-6">
+                                <div class="relative">
+                                    <img src="https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff&size=128" 
+                                        class="w-24 h-24 rounded-full" alt="Profile" id="profile-picture">
+                                    <button onclick="handleProfilePictureChange()" class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700">
+                                        <i class="fas fa-camera"></i>
+                                    </button>
+                                </div>
+                                <div>
+                                    <h2 class="text-2xl font-bold text-gray-800" id="profile-name">User Name</h2>
+                                    <p class="text-gray-600" id="profile-email">user@email.com</p>
+                                    <p class="text-sm text-gray-500 mt-1">Member since: <span id="member-since">2024</span></p>
+                                </div>
+                            </div>
+                            
+                            <form id="profile-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                    <input type="text" id="profile-name-input" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                                    <input type="email" id="profile-email-input" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                
+                                <hr class="my-4">
+                                
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Change Password</h3>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                                    <input type="password" id="profile-new-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Leave blank to keep current">
+                                    <p class="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                                    <input type="password" id="profile-confirm-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Confirm new password">
+                                </div>
+                                
+                                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                                    <i class="fas fa-save mr-2"></i> Update Profile
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Panel Screen -->
+                <div id="admin-screen" class="app-screen">
+                    <div class="max-w-7xl mx-auto px-4 py-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h1 class="text-2xl font-bold text-gray-800">
+                                <i class="fas fa-crown text-purple-600 mr-2"></i>Admin Panel
+                            </h1>
+                            <div class="bg-purple-100 px-4 py-2 rounded-lg">
+                                <span class="text-purple-800 font-semibold">Administrator Access</span>
+                            </div>
+                        </div>
+
+                        <!-- Admin Stats Overview -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-blue-100">Total Users</p>
+                                    <i class="fas fa-users text-2xl"></i>
+                                </div>
+                                <h3 class="text-3xl font-bold" id="admin-total-users">0</h3>
+                                <p class="text-sm text-blue-100 mt-2">Registered accounts</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-green-100">Active Subscriptions</p>
+                                    <i class="fas fa-check-circle text-2xl"></i>
+                                </div>
+                                <h3 class="text-3xl font-bold" id="admin-active-subs">0</h3>
+                                <p class="text-sm text-green-100 mt-2">Paying customers</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-purple-100">Monthly Revenue</p>
+                                    <i class="fas fa-dollar-sign text-2xl"></i>
+                                </div>
+                                <h3 class="text-3xl font-bold" id="admin-monthly-revenue">$0</h3>
+                                <p class="text-sm text-purple-100 mt-2">This month</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-orange-100">Active Sessions</p>
+                                    <i class="fas fa-signal text-2xl"></i>
+                                </div>
+                                <h3 class="text-3xl font-bold" id="admin-active-sessions">0</h3>
+                                <p class="text-sm text-orange-100 mt-2">Online now</p>
+                            </div>
+                        </div>
+
+                        <!-- Admin Tabs -->
+                        <div class="bg-white rounded-xl shadow-md mb-6">
+                            <div class="border-b border-gray-200">
+                                <nav class="flex space-x-8 px-6" aria-label="Admin Tabs">
+                                    <button onclick="switchAdminTab('users')" class="admin-tab active py-4 px-1 border-b-2 border-purple-600 font-medium text-sm text-purple-600">
+                                        <i class="fas fa-users mr-2"></i>User Management
+                                    </button>
+                                    <button onclick="switchAdminTab('subscriptions')" class="admin-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                        <i class="fas fa-credit-card mr-2"></i>Subscriptions
+                                    </button>
+                                    <button onclick="switchAdminTab('sessions')" class="admin-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                        <i class="fas fa-desktop mr-2"></i>Sessions
+                                    </button>
+                                    <button onclick="switchAdminTab('analytics')" class="admin-tab py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                        <i class="fas fa-chart-line mr-2"></i>Analytics
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+
+                        <!-- User Management Tab -->
+                        <div id="admin-users-tab" class="admin-tab-content active">
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold">All Users</h3>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="text" id="admin-user-search" placeholder="Search users..." class="px-4 py-2 border border-gray-300 rounded-lg" onkeyup="adminSearchUsers()">
+                                        <button onclick="adminRefreshUsers()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                                            <i class="fas fa-sync mr-2"></i>Refresh
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="overflow-x-auto">
+                                    <table class="data-table w-full">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-left p-3">User</th>
+                                                <th class="text-left p-3">Email</th>
+                                                <th class="text-left p-3">Plan</th>
+                                                <th class="text-left p-3">Status</th>
+                                                <th class="text-left p-3">Joined</th>
+                                                <th class="text-left p-3">Sessions</th>
+                                                <th class="text-left p-3">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-users-list">
+                                            <tr>
+                                                <td colspan="7" class="text-center p-8 text-gray-500">
+                                                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                                    <p>Loading users...</p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subscriptions Tab -->
+                        <div id="admin-subscriptions-tab" class="admin-tab-content">
+                            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                                <h3 class="text-lg font-semibold mb-4">Subscription Plans Overview</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div class="border border-gray-200 rounded-lg p-4">
+                                        <h4 class="font-semibold text-gray-800">Free</h4>
+                                        <p class="text-2xl font-bold text-gray-600" id="admin-free-count">0</p>
+                                        <p class="text-sm text-gray-500">users</p>
+                                    </div>
+                                    <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                                        <h4 class="font-semibold text-blue-800">Basic ($9.99)</h4>
+                                        <p class="text-2xl font-bold text-blue-600" id="admin-basic-count">0</p>
+                                        <p class="text-sm text-blue-500">users</p>
+                                    </div>
+                                    <div class="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                                        <h4 class="font-semibold text-purple-800">Premium ($19.99)</h4>
+                                        <p class="text-2xl font-bold text-purple-600" id="admin-premium-count">0</p>
+                                        <p class="text-sm text-purple-500">users</p>
+                                    </div>
+                                    <div class="border border-orange-200 rounded-lg p-4 bg-orange-50">
+                                        <h4 class="font-semibold text-orange-800">Enterprise ($49.99)</h4>
+                                        <p class="text-2xl font-bold text-orange-600" id="admin-enterprise-count">0</p>
+                                        <p class="text-sm text-orange-500">users</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h3 class="text-lg font-semibold mb-4">Recent Subscription Changes</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="data-table w-full">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-left p-3">User</th>
+                                                <th class="text-left p-3">Previous Plan</th>
+                                                <th class="text-left p-3">New Plan</th>
+                                                <th class="text-left p-3">Status</th>
+                                                <th class="text-left p-3">Changed Date</th>
+                                                <th class="text-left p-3">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-subscription-history">
+                                            <tr>
+                                                <td colspan="6" class="text-center p-8 text-gray-500">No subscription changes yet</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sessions Tab -->
+                        <div id="admin-sessions-tab" class="admin-tab-content">
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold">Active Sessions</h3>
+                                    <button onclick="adminRefreshSessions()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                                        <i class="fas fa-sync mr-2"></i>Refresh
+                                    </button>
+                                </div>
+
+                                <div class="overflow-x-auto">
+                                    <table class="data-table w-full">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-left p-3">User</th>
+                                                <th class="text-left p-3">Device</th>
+                                                <th class="text-left p-3">Browser</th>
+                                                <th class="text-left p-3">OS</th>
+                                                <th class="text-left p-3">IP Address</th>
+                                                <th class="text-left p-3">Login Time</th>
+                                                <th class="text-left p-3">Last Active</th>
+                                                <th class="text-left p-3">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-sessions-list">
+                                            <tr>
+                                                <td colspan="8" class="text-center p-8 text-gray-500">
+                                                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                                    <p>Loading sessions...</p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analytics Tab -->
+                        <div id="admin-analytics-tab" class="admin-tab-content">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-white rounded-xl shadow-md p-6">
+                                    <h3 class="text-lg font-semibold mb-4">User Growth</h3>
+                                    <canvas id="admin-user-growth-chart"></canvas>
+                                </div>
+                                
+                                <div class="bg-white rounded-xl shadow-md p-6">
+                                    <h3 class="text-lg font-semibold mb-4">Revenue by Plan</h3>
+                                    <canvas id="admin-revenue-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h3 class="text-lg font-semibold mb-4">Platform Statistics</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="border border-gray-200 rounded-lg p-4">
+                                        <p class="text-sm text-gray-600">Total Transactions</p>
+                                        <p class="text-2xl font-bold text-gray-800" id="admin-total-transactions">0</p>
+                                    </div>
+                                    <div class="border border-gray-200 rounded-lg p-4">
+                                        <p class="text-sm text-gray-600">Total Loans</p>
+                                        <p class="text-2xl font-bold text-gray-800" id="admin-total-loans">0</p>
+                                    </div>
+                                    <div class="border border-gray-200 rounded-lg p-4">
+                                        <p class="text-sm text-gray-600">Average User Engagement</p>
+                                        <p class="text-2xl font-bold text-gray-800" id="admin-avg-engagement">0%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Edit User Modal (Admin) -->
+    <div id="admin-edit-user-modal" class="modal">
+        <div class="modal-content max-w-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Edit User</h3>
+                <button onclick="closeModal('admin-edit-user-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="admin-edit-user-form" onsubmit="handleAdminUpdateUser(event)" class="space-y-4">
+                <input type="hidden" id="admin-edit-user-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input type="text" id="admin-edit-user-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="admin-edit-user-email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subscription Plan</label>
+                        <select id="admin-edit-user-plan" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="free">Free</option>
+                            <option value="basic">Basic ($9.99/month)</option>
+                            <option value="premium">Premium ($19.99/month)</option>
+                            <option value="enterprise">Enterprise ($49.99/month)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="admin-edit-user-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="trial">Trial</option>
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Account Active</label>
+                        <select id="admin-edit-user-active" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="true">Yes</option>
+                            <option value="false">No (Deactivated)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <select id="admin-edit-user-role" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-4 border-t">
+                    <button type="button" onclick="adminKickUserSession()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Kick All Sessions
+                    </button>
+                    <div class="space-x-2">
+                        <button type="button" onclick="closeModal('admin-edit-user-modal')" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-save mr-2"></i>Save Changes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Original Modals --
+    
+    <!-- Add Income Modal -->
+    <div id="add-income-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Add Income</h3>
+                <button onclick="closeModal('add-income-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="add-income-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
+                    <input type="number" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="0.00">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Select Category</option>
+                        <option value="salary">Salary</option>
+                        <option value="business">Business</option>
+                        <option value="bonus">Bonus</option>
+                        <option value="investment">Investment</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <input type="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Account *</label>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="cash">Cash</option>
+                        <option value="bank">Bank Account</option>
+                        <option value="card">Credit Card</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Attachment</label>
+                    <input type="file" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                    Save Income
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="add-expense-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Add Expense</h3>
+                <button onclick="closeModal('add-expense-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="add-expense-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
+                    <input type="number" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="0.00">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Select Category</option>
+                        <option value="food">Food & Dining</option>
+                        <option value="transport">Transport</option>
+                        <option value="utilities">Utilities</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <input type="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Account *</label>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="cash">Cash</option>
+                        <option value="bank">Bank Account</option>
+                        <option value="card">Credit Card</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Counterparty</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Shop/Service">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Attachment</label>
+                    <input type="file" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">
+                    Save Expense
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Loan Given Modal -->
+    <div id="add-loan-given-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Add Loan Given</h3>
+                <button onclick="closeModal('add-loan-given-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="add-loan-given-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Borrower Name *</label>
+                    <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Principal Amount *</label>
+                    <input type="number" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Interest Rate (%)</label>
+                    <input type="number" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="0.00">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
+                    <input type="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date *</label>
+                    <input type="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Attachment</label>
+                    <input type="file" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700">
+                    Save Loan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Loan Taken Modal -->
+    <div id="add-loan-taken-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Add Loan Taken</h3>
+                <button onclick="closeModal('add-loan-taken-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="add-loan-taken-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Lender Name *</label>
+                    <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Principal Amount *</label>
+                    <input type="number" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Interest Rate (%)</label>
+                    <input type="number" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="0.00">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
+                    <input type="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date *</label>
+                    <input type="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">
+                    Save Loan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Transaction Modal -->
+    <div id="edit-transaction-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Edit Transaction</h3>
+                <button onclick="closeModal('edit-transaction-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="edit-transaction-form" class="space-y-4">
+                <input type="hidden" id="edit-transaction-id">
+                <input type="hidden" id="edit-transaction-type">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
+                    <input type="number" step="0.01" id="edit-amount" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                    <select id="edit-category" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <input type="date" id="edit-date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Account *</label>
+                    <select id="edit-account" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="cash">Cash</option>
+                        <option value="bank">Bank Account</option>
+                        <option value="card">Credit Card</option>
+                    </select>
+                </div>
+                
+                <div id="edit-counterparty-field" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Counterparty</label>
+                    <input type="text" id="edit-counterparty" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea id="edit-notes" class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                    Update Transaction
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="add-category-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Add Category</h3>
+                <button onclick="closeModal('add-category-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="add-category-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category Name *</label>
+                    <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="fa-icon-name">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                    Add Category
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transaction Detail Modal -->
+    <div id="transaction-detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Transaction Details</h3>
+                <button onclick="closeModal('transaction-detail-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="transaction-detail-content" class="space-y-4">
+                <!-- Transaction details will be populated here -->
+            </div>
+            <div class="flex space-x-3 mt-6">
+                <button onclick="editTransaction()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-edit mr-2"></i> Edit
+                </button>
+                <button onclick="deleteTransaction()" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">
+                    <i class="fas fa-trash mr-2"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loan Detail Modal -->
+    <div id="loan-detail-modal" class="modal">
+        <div class="modal-content max-w-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Loan Details</h3>
+                <button onclick="closeModal('loan-detail-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="loan-detail-content">
+                <!-- Loan details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Repayment Modal -->
+    <div id="add-repayment-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Add Repayment</h3>
+                <button onclick="closeModal('add-repayment-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="add-repayment-form" class="space-y-4">
+                <input type="hidden" id="repayment-loan-id">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
+                    <input type="number" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <input type="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="2"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                    Add Repayment
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Preference Modal -->
+    <div id="add-preference-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Add Preference</h3>
+                <button onclick="closeModal('add-preference-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="add-preference-form" onsubmit="handleAddPreference(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Preference Category *</label>
+                    <select id="pref-category" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Select Category</option>
+                        <option value="Currency">Currency</option>
+                        <option value="Account">Account</option>
+                        <option value="Income">Income Category</option>
+                        <option value="Expense">Expense Category</option>
+                        <option value="Theme">Theme</option>
+                        <option value="Language">Language</option>
+                        <option value="Date Format">Date Format</option>
+                        <option value="Default Action">Default Action</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Preference Name *</label>
+                    <input type="text" id="pref-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="e.g., Salary, Freelance, etc.">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Preference Value *</label>
+                    <input type="text" id="pref-value" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="e.g., Monthly Salary, USD, etc.">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Icon (FontAwesome class)</label>
+                    <input type="text" id="pref-icon" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="e.g., fa-money-bill-wave">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea id="pref-description" class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="2" placeholder="Optional description"></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-plus mr-2"></i>Add Preference
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Account Modal -->
+    <div id="add-account-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Add Account</h3>
+                <button onclick="closeModal('add-account-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="add-account-form" onsubmit="handleAddAccount(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Account Name *</label>
+                    <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="e.g., Main Wallet, Savings Account">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Account Type *</label>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="cash">Cash</option>
+                        <option value="bank">Bank Account</option>
+                        <option value="card">Credit Card</option>
+                        <option value="savings">Savings</option>
+                        <option value="investment">Investment</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Initial Balance</label>
+                    <input type="number" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="0.00">
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-plus mr-2"></i>Add Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
